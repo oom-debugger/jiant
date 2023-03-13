@@ -128,9 +128,7 @@ def setup_runner(
     )
     return runner
 
-
-def run_loop(args: RunConfiguration, checkpoint=None):
-    is_resumed = checkpoint is not None
+def setup_runner_from_config(args: RunConfiguration):
     quick_init_out = initialization.quick_init(args=args, verbose=True)
     print(quick_init_out.n_gpu)
     with quick_init_out.log_writer.log_context():
@@ -144,6 +142,25 @@ def run_loop(args: RunConfiguration, checkpoint=None):
             quick_init_out=quick_init_out,
             verbose=True,
         )
+    return runner
+
+
+def run_loop(args: RunConfiguration, checkpoint=None, runner=None):
+    is_resumed = checkpoint is not None
+    quick_init_out = initialization.quick_init(args=args, verbose=True)
+    print(quick_init_out.n_gpu)
+    with quick_init_out.log_writer.log_context():
+        jiant_task_container = container_setup.create_jiant_task_container_from_json(
+            jiant_task_container_config_path=args.jiant_task_container_config_path,
+            verbose=True,
+        )
+        if runner is None:
+            runner = setup_runner(
+                args=args,
+                jiant_task_container=jiant_task_container,
+                quick_init_out=quick_init_out,
+                verbose=True,
+            )
         if is_resumed:
             runner.load_state(checkpoint["runner_state"])
             del checkpoint["runner_state"]
