@@ -11,15 +11,15 @@ The following command downloads the task config to the task folder
 import os
 import sys
 
-import jiant.jiant.proj.main.tokenize_and_cache as tokenize_and_cache
-import jiant.jiant.proj.main.export_model as export_model
-import jiant.jiant.proj.main.scripts.configurator as configurator
-import jiant.jiant.proj.main.runscript as main_runscript
-import jiant.jiant.shared.caching as caching
-import jiant.jiant.utils.python.io as py_io
-import jiant.jiant.utils.display as display
+import jiant.proj.main.tokenize_and_cache as tokenize_and_cache
+import jiant.proj.main.export_model as export_model
+import jiant.proj.main.scripts.configurator as configurator
+import jiant.proj.main.runscript as main_runscript
+import jiant.shared.caching as caching
+import jiant.utils.python.io as py_io
+import jiant.utils.display as display
 
-import jiant.jiant.scripts.download_data.runscript as runscript
+import jiant.scripts.download_data.runscript as runscript
 
 _TASK_NAME = "mrpc"
 _MODEL_NAME = 'albert-base-v2'
