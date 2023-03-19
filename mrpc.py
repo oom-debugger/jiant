@@ -7,7 +7,7 @@ The following command downloads the task config to the task folder
     --tasks mrpc \
     --output_path=/home/ugrads/nonmajors/mehrdadk/tmp/content/tasks/
 """
-
+import argparse
 import os
 import sys
 
@@ -20,6 +20,13 @@ import jiant.utils.python.io as py_io
 import jiant.utils.display as display
 
 import jiant.scripts.download_data.runscript as runscript
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--token_file", type=str, default=None, help="")
+parser.add_argument("--group_names", type=str, default=None, help="")
+parser.add_argument("--freeze_layer", type=bool, default=False,  help="")
+args = parser.parse_args()
+
 
 _TASK_NAME = "mrpc"
 _MODEL_NAME = 'albert-base-v2'
@@ -77,8 +84,7 @@ def run_and_eval(model_name=_MODEL_NAME, task_name=_TASK_NAME):
     )
 
     print('Running the trainer loop...')
-    main_runscript.run_loop(run_args, token_file, group_banes, freeze_layer)
-
+    main_runscript.run_loop(run_args, token_file=args.token_file, group_names=args.group_names.split(','), freeze_layer=freeze_layer)
 
 def main():
     run_and_eval()
