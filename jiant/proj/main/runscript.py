@@ -141,7 +141,10 @@ def setup_runner(
     )
     return runner
 
-def setup_runner_from_config(args: RunConfiguration):
+
+def run_loop(args: RunConfiguration, checkpoint=None, token_file=None, 
+             token_file: str = None, group_names: str = None, freeze_layer: bool = False):
+    is_resumed = checkpoint is not None
     quick_init_out = initialization.quick_init(args=args, verbose=True)
     print(quick_init_out.n_gpu)
     with quick_init_out.log_writer.log_context():
@@ -154,26 +157,10 @@ def setup_runner_from_config(args: RunConfiguration):
             jiant_task_container=jiant_task_container,
             quick_init_out=quick_init_out,
             verbose=True,
+            token_file=token_file, 
+            group_names=group_names,
+            freeze_layer=freeze_layer,
         )
-    return runner
-
-
-def run_loop(args: RunConfiguration, checkpoint=None, runner=None):
-    is_resumed = checkpoint is not None
-    quick_init_out = initialization.quick_init(args=args, verbose=True)
-    print(quick_init_out.n_gpu)
-    with quick_init_out.log_writer.log_context():
-        jiant_task_container = container_setup.create_jiant_task_container_from_json(
-            jiant_task_container_config_path=args.jiant_task_container_config_path,
-            verbose=True,
-        )
-        if runner is None:
-            runner = setup_runner(
-                args=args,
-                jiant_task_container=jiant_task_container,
-                quick_init_out=quick_init_out,
-                verbose=True,
-            )
         if is_resumed:
             runner.load_state(checkpoint["runner_state"])
             del checkpoint["runner_state"]
