@@ -46,6 +46,7 @@ def setup_jiant_model(
     model_config_path: str,
     task_dict: Dict[str, Task],
     taskmodels_config: container_setup.TaskmodelsConfig,
+    normalize_token_groups_fn=None
 ):
     """Sets up tokenizer, encoder, and task models, and instantiates and returns a JiantModel.
 
@@ -78,11 +79,8 @@ def setup_jiant_model(
         hf_pretrained_model_name_or_path, use_fast=False
     )
     # Here adjust the tokenizer and the model.
-    normalize_token_groups(
-        token_file='',
-        group_names='', 
-        wembed_layer=hf_model._modules['embeddings']._modules['word_embeddings'],
-        freeze_layer=False)
+    if normalize_token_groups_fn:
+        normalize_token_groups_fn(wembed_layer=hf_model._modules['embeddings']._modules['word_embeddings'])
     
     encoder = primary.JiantTransformersModelFactory()(hf_model)
     taskmodels_dict = {
