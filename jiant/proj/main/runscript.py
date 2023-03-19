@@ -142,7 +142,7 @@ def setup_runner(
     return runner
 
 
-def run_loop(args: RunConfiguration, checkpoint=None, token_file=None, 
+def run_loop(args: RunConfiguration, checkpoint=None, 
              token_file: str = None, group_names: str = None, freeze_layer: bool = False):
     is_resumed = checkpoint is not None
     quick_init_out = initialization.quick_init(args=args, verbose=True)
