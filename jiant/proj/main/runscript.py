@@ -1,6 +1,7 @@
+from functools import partial
+
 import os
 import torch
-
 
 import jiant.proj.main.modeling.model_setup as jiant_model_setup
 import jiant.proj.main.runner as jiant_runner
@@ -67,6 +68,9 @@ def setup_runner(
     jiant_task_container: container_setup.JiantTaskContainer,
     quick_init_out,
     verbose: bool = True,
+    token_file: str = None,
+    group_names: str = None,
+    freeze_layer: bool = False,
 ) -> jiant_runner.JiantRunner:
     """Setup jiant model, optimizer, and runner, and return runner.
 
@@ -83,12 +87,20 @@ def setup_runner(
     # TODO document why the distributed.only_first_process() context manager is being used here.
     with distributed.only_first_process(local_rank=args.local_rank):
         # 
+        normalize_token_groups_fn = None
+        if token_file:
+            normalize_token_groups_fn = functools.partial(
+                normalize_token_groups, 
+                token_file=token_file, 
+                group_names=group_names, 
+                freeze_layer=freeze_layer)
         # load the model
         jiant_model = jiant_model_setup.setup_jiant_model(
             hf_pretrained_model_name_or_path=args.hf_pretrained_model_name_or_path,
             model_config_path=args.model_config_path,
             task_dict=jiant_task_container.task_dict,
             taskmodels_config=jiant_task_container.taskmodels_config,
+            normalize_token_groups_fn=normalize_token_groups_fn,
         )
         jiant_model_setup.delegate_load_from_path(
             jiant_model=jiant_model, weights_path=args.model_path, load_mode=args.model_load_mode
