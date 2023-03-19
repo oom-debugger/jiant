@@ -3,6 +3,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
+import json
 import torch
 import torch.nn as nn
 import transformers
@@ -17,6 +18,27 @@ from jiant.proj.main.modeling.taskmodels import JiantTaskModelFactory, Taskmodel
 
 from jiant.shared.model_resolution import ModelArchitectures
 from jiant.tasks.core import Task
+
+
+def normalize_token_groups(token_file, group_names, wembed_layer, freeze_layer=False):
+    # 1. load the token ids...
+    token_dict = {}
+    with open(token_file, r) as f:
+        token_dict - json.load(f)
+    if not group_names:
+        group_names  = list(token_dict.keys())    
+    for name in group_names:
+        # feed list of token_ids in tensor_format.
+        ids = list(token_dict[name])
+        # 2. calculate the mid-point...
+        group = wembed_layer(torch.tensor(ids))
+        midpoint = group.mean(dim=0)
+        # 3. assign the midpoint to the token ids...
+        wembder.weight[ids,:] = group.mean(dim=0)
+    # 4. possibly freeze the tokenizer.
+    if freeze_layer:
+        for param in wembder.parameters():
+            param.requires_grad = False
 
 
 def setup_jiant_model(
@@ -56,6 +78,12 @@ def setup_jiant_model(
         hf_pretrained_model_name_or_path, use_fast=False
     )
     # Here adjust the tokenizer and the model.
+    normalize_token_groups(
+        token_file='',
+        group_names='', 
+        wembed_layer=hf_model._modules['embeddings']._modules['word_embeddings'],
+        freeze_layer=False)
+    
     encoder = primary.JiantTransformersModelFactory()(hf_model)
     taskmodels_dict = {
         taskmodel_name: create_taskmodel(
