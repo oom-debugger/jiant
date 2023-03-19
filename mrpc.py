@@ -84,7 +84,8 @@ def run_and_eval(model_name=_MODEL_NAME, task_name=_TASK_NAME):
     )
 
     print('Running the trainer loop...')
-    main_runscript.run_loop(run_args, token_file=args.token_file, group_names=args.group_names.split(','), freeze_layer=freeze_layer)
+    group_names = args.group_names.split(',') if group_names else None
+    main_runscript.run_loop(run_args, token_file=args.token_file, group_names=group_names, freeze_layer=freeze_layer)
 
 def main():
     run_and_eval()
