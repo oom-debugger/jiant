@@ -24,7 +24,7 @@ import jiant.scripts.download_data.runscript as runscript
 _TASK_NAME = "mrpc"
 _MODEL_NAME = 'albert-base-v2'
 
-def downloa_tasks(task_name=_TASK_NAME):
+def download_tasks(task_name=_TASK_NAME):
     runscript.download_data(task_names, output_base_path)
 
 
@@ -75,16 +75,9 @@ def run_and_eval(model_name=_MODEL_NAME, task_name=_TASK_NAME):
         do_save=True,
         force_overwrite=True,
     )
-    
-    print ('creating the runner config...')
-    runner = main_runscript.setup_runner_from_config(args=run_args)
-    
-    print ('================================')
-    print (runner.jiant_model)
-    print ('================================')
 
-    # print('Running the trainer loop...')
-    # main_runscript.run_loop(run_args, runner=runner)
+    print('Running the trainer loop...')
+    main_runscript.run_loop(run_args, token_file, group_banes, freeze_layer)
 
 
 def main():
