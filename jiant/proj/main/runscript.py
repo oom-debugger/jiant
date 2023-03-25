@@ -1,5 +1,4 @@
-from functools import partial
-
+import functools
 import os
 import torch
 
@@ -86,21 +85,12 @@ def setup_runner(
     """
     # TODO document why the distributed.only_first_process() context manager is being used here.
     with distributed.only_first_process(local_rank=args.local_rank):
-        # 
-        normalize_token_groups_fn = None
-        if token_file:
-            normalize_token_groups_fn = functools.partial(
-                normalize_token_groups, 
-                token_file=token_file, 
-                group_names=group_names, 
-                freeze_layer=freeze_layer)
         # load the model
         jiant_model = jiant_model_setup.setup_jiant_model(
             hf_pretrained_model_name_or_path=args.hf_pretrained_model_name_or_path,
             model_config_path=args.model_config_path,
             task_dict=jiant_task_container.task_dict,
             taskmodels_config=jiant_task_container.taskmodels_config,
-            normalize_token_groups_fn=normalize_token_groups_fn,
         )
         jiant_model_setup.delegate_load_from_path(
             jiant_model=jiant_model, weights_path=args.model_path, load_mode=args.model_load_mode
@@ -169,6 +159,24 @@ def run_loop(args: RunConfiguration, checkpoint=None,
             save_path=os.path.join(args.output_dir, "checkpoint.p"),
         )
         if args.do_train:
+            # train
+            print ('============ model in task dict ====')
+            # print (jiant_model)
+            # tmp_model = jiant_model.taskmodels_dict['mrpc']
+            # if normalize_token_groups_fn:
+            #    normalize_token_groups_fn(wembed_layer=tmp_model._modules['encoder']._modules['embeddings']._modules['word_embeddings'])
+            # print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['word_embeddings'].weight)
+            # reset pos embeddings as well
+            # pos = runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['position_embeddings']
+            # token_type_embeddings = runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['token_type_embeddings']
+            # with torch.no_grad():
+            #    pos.weight[:,:] = torch.zeros(128) # midpoint
+            #    token_type_embeddings.weight[:,:] = torch.zeros(128)
+            # for param in pos.parameters():
+            #    param.requires_grad = False
+
+           #  print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['position_embeddings'].weight)
+            # raise ValueError('....')
             metarunner = jiant_metarunner.JiantMetarunner(
                 runner=runner,
                 save_every_steps=args.save_every_steps,
@@ -187,6 +195,9 @@ def run_loop(args: RunConfiguration, checkpoint=None,
                 metarunner.load_state(checkpoint["metarunner_state"])
                 del checkpoint["metarunner_state"]
             metarunner.run_train_loop()
+            # print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['word_embeddings'].weight)
+            # print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['position_embeddings'].weight)
+
 
         if args.do_val:
             val_results_dict = runner.run_val(

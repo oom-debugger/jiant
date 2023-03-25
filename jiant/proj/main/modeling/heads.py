@@ -1,4 +1,3 @@
-from __future__ import annotations
 
 import abc
 
@@ -56,7 +55,7 @@ class JiantHeadFactory:
 
         return inner_wrapper
 
-    def __call__(self, task, **kwargs) -> BaseHead:
+    def __call__(self, task, **kwargs):
         """Summary
 
         Args:

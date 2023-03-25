@@ -23,8 +23,8 @@ from jiant.tasks.core import Task
 def normalize_token_groups(token_file, group_names, wembed_layer, freeze_layer=False):
     # 1. load the token ids...
     token_dict = {}
-    with open(token_file, r) as f:
-        token_dict - json.load(f)
+    with open(token_file, 'r') as f:
+        token_dict = json.load(f)
     if not group_names:
         group_names  = list(token_dict.keys())    
     for name in group_names:
@@ -34,10 +34,12 @@ def normalize_token_groups(token_file, group_names, wembed_layer, freeze_layer=F
         group = wembed_layer(torch.tensor(ids))
         midpoint = group.mean(dim=0)
         # 3. assign the midpoint to the token ids...
-        wembder.weight[ids,:] = group.mean(dim=0)
+        with torch.no_grad():
+            wembed_layer.weight[:,:] = torch.zeros(128) # midpoint
     # 4. possibly freeze the tokenizer.
     if freeze_layer:
-        for param in wembder.parameters():
+        print ('freezing the embedding layer weights')
+        for param in wembed_layer.parameters():
             param.requires_grad = False
 
 
@@ -46,7 +48,6 @@ def setup_jiant_model(
     model_config_path: str,
     task_dict: Dict[str, Task],
     taskmodels_config: container_setup.TaskmodelsConfig,
-    normalize_token_groups_fn=None
 ):
     """Sets up tokenizer, encoder, and task models, and instantiates and returns a JiantModel.
 
@@ -78,10 +79,6 @@ def setup_jiant_model(
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         hf_pretrained_model_name_or_path, use_fast=False
     )
-    # Here adjust the tokenizer and the model.
-    if normalize_token_groups_fn:
-        normalize_token_groups_fn(wembed_layer=hf_model._modules['embeddings']._modules['word_embeddings'])
-    
     encoder = primary.JiantTransformersModelFactory()(hf_model)
     taskmodels_dict = {
         taskmodel_name: create_taskmodel(
@@ -93,6 +90,11 @@ def setup_jiant_model(
             taskmodels_config.task_to_taskmodel_map
         ).items()
     }
+    # print (taskmodels_dict['mrpc']._modules['encoder']._modules['embeddings']._modules['word_embeddings'].weight)
+    # print ('========================111=======================')
+    # print (encoder._modules['embeddings']._modules['word_embeddings'].weight)
+    # raise ValueError('....')
+
     return primary.JiantModel(
         task_dict=task_dict,
         encoder=encoder,
