@@ -1,6 +1,7 @@
 import functools
 import os
 import torch
+import json
 
 import jiant.proj.main.modeling.model_setup as jiant_model_setup
 import jiant.proj.main.runner as jiant_runner
@@ -12,6 +13,30 @@ import jiant.shared.distributed as distributed
 import jiant.shared.model_setup as model_setup
 import jiant.utils.python.io as py_io
 import jiant.utils.zconf as zconf
+
+
+def reset_word_embeddings(wembed_layer, clusters=None, token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json'):
+    token_dict = {}
+    with open(token_file, 'r') as f:
+        cluster_dict = json.load(f)
+    if not clusters:
+        clusters = list(token_dict.keys())
+
+    for name in group_names:
+        # feed list of token_ids in tensor_format.
+        ids = list(token_dict[name])
+        # 2. calculate the mid-point...
+        group = wembed_layer(torch.tensor(ids))
+        midpoint = group.mean(dim=0)
+        # 3. assign the midpoint to the token ids...
+        with torch.no_grad():
+            wembed_layer.weight[ids,:] = midpoint
+    # 4. possibly freeze the tokenizer.
+    if freeze_layer:
+        print ('freezing the embedding layer weights')
+        for param in wembed_layer.parameters():
+            param.requires_grad = False
+    
 
 
 @zconf.run_config
@@ -161,22 +186,16 @@ def run_loop(args: RunConfiguration, checkpoint=None,
         if args.do_train:
             # train
             print ('============ model in task dict ====')
-            # print (jiant_model)
-            # tmp_model = jiant_model.taskmodels_dict['mrpc']
-            # if normalize_token_groups_fn:
-            #    normalize_token_groups_fn(wembed_layer=tmp_model._modules['encoder']._modules['embeddings']._modules['word_embeddings'])
-            # print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['word_embeddings'].weight)
-            # reset pos embeddings as well
-            # pos = runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['position_embeddings']
-            # token_type_embeddings = runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['token_type_embeddings']
-            # with torch.no_grad():
-            #    pos.weight[:,:] = torch.zeros(128) # midpoint
-            #    token_type_embeddings.weight[:,:] = torch.zeros(128)
-            # for param in pos.parameters():
-            #    param.requires_grad = False
+            print ("Reseting the Embedding weights.....")
+            word_emb = runner.jiant_model._modules['module']._modules['encoder']._modules['embeddings']._modules['word_embeddings']
+            with torch.no_grad():
+               word_emb.weight[:,:] = torch.zeros(128) # midpoint
+               # token_type_embeddings.weight[:,:] = torch.zeros(128)
+            reset_word_embeddings(
+                    weights=word_emb, 
+                    clusters=None, 
+                    token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json')
 
-           #  print (runner.jiant_model._modules['module']._modules['taskmodels_dict']._modules['mrpc']._modules['encoder']._modules['embeddings']._modules['position_embeddings'].weight)
-            # raise ValueError('....')
             metarunner = jiant_metarunner.JiantMetarunner(
                 runner=runner,
                 save_every_steps=args.save_every_steps,

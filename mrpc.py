@@ -29,8 +29,9 @@ args = parser.parse_args()
 
 
 # _TASK_NAMES = ["mnli", "mrpc", "qnli", "cola", "qqp", "rte", "sst", "stsb", "wnli"]
-_TASK_NAMES = ["boolq", "cb", "copa", "multirc", "record", "wic", "wsc"]
-_TASK_NAMES = ["squad_v1", "squad_v2"]
+_TASK_NAMES = ["mnli", "mrpc", "qnli", "cola", "qqp", "rte", "sst", "stsb", "wnli"]
+# _TASK_NAMES = ["boolq", "cb", "copa", "multirc", "record", "wic", "wsc"]
+# _TASK_NAMES = ["squad_v1", "squad_v2"]
 _MODEL_NAME = 'albert-base-v2'
 
 def download_tasks(task_names, task_dir):
@@ -43,14 +44,17 @@ def run_and_eval(model_name=_MODEL_NAME, task_names=_TASK_NAMES):
     task_dir = f"{root_dir}/content/tasks/configs"
     model_dir = f"{root_dir}/models/{model_name}/model"
 
+    print ("Exporting the model...")
     export_model.export_model(
         hf_pretrained_model_name_or_path=model_name,
         output_base_path=model_dir,
     )
 
-
+    print ("Model exported successfully...")
     for task_name in task_names:
-        if not os.path.isfile(f"{task_dir}/{task_name}_config.json"):
+        task_file = f"{task_dir}/{task_name}_config.json"
+        if not os.path.isfile(task_file):
+            print (f"{task_file} is downloaded successfully...")
             download_tasks([task_name], f"{root_dir}/content/tasks")
 
         # Tokenize and cache each task
