@@ -20,6 +20,7 @@ from jiant.shared.model_resolution import ModelArchitectures
 from jiant.tasks.core import Task
 
 
+"""
 def normalize_token_groups(token_file, group_names, wembed_layer, freeze_layer=False):
     # 1. load the token ids...
     token_dict = {}
@@ -41,7 +42,7 @@ def normalize_token_groups(token_file, group_names, wembed_layer, freeze_layer=F
         print ('freezing the embedding layer weights')
         for param in wembed_layer.parameters():
             param.requires_grad = False
-
+"""
 
 def setup_jiant_model(
     hf_pretrained_model_name_or_path: str,

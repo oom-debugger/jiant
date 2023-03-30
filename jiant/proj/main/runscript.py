@@ -15,14 +15,14 @@ import jiant.utils.python.io as py_io
 import jiant.utils.zconf as zconf
 
 
-def reset_word_embeddings(wembed_layer, clusters=None, token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json'):
+def reset_word_embeddings(wembed_layer, clusters=None, freeze_layer=False, token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json'):
     token_dict = {}
     with open(token_file, 'r') as f:
         cluster_dict = json.load(f)
     if not clusters:
         clusters = list(token_dict.keys())
 
-    for name in group_names:
+    for name in clusters:
         # feed list of token_ids in tensor_format.
         ids = list(token_dict[name])
         # 2. calculate the mid-point...
@@ -188,13 +188,14 @@ def run_loop(args: RunConfiguration, checkpoint=None,
             print ('============ model in task dict ====')
             print ("Reseting the Embedding weights.....")
             word_emb = runner.jiant_model._modules['module']._modules['encoder']._modules['embeddings']._modules['word_embeddings']
-            with torch.no_grad():
-               word_emb.weight[:,:] = torch.zeros(128) # midpoint
-               # token_type_embeddings.weight[:,:] = torch.zeros(128)
+            #with torch.no_grad():
+            #   word_emb.weight[:,:] = torch.zeros(128) # midpoint
+            #   token_type_embeddings.weight[:,:] = torch.zeros(128)
             reset_word_embeddings(
-                    weights=word_emb, 
-                    clusters=None, 
-                    token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json')
+                  wembed_layer=word_emb, 
+                  clusters=None, 
+                  freeze_layer=False,
+                  token_file='/home/mehrdadk/all_clusters_with_ids.json')
 
             metarunner = jiant_metarunner.JiantMetarunner(
                 runner=runner,

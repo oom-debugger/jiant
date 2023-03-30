@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 
 # _TASK_NAMES = ["mnli", "mrpc", "qnli", "cola", "qqp", "rte", "sst", "stsb", "wnli"]
-_TASK_NAMES = ["mnli", "mrpc", "qnli", "cola", "qqp", "rte", "sst", "stsb", "wnli"]
+_TASK_NAMES = ["mnli"]
 # _TASK_NAMES = ["boolq", "cb", "copa", "multirc", "record", "wic", "wsc"]
 # _TASK_NAMES = ["squad_v1", "squad_v2"]
 _MODEL_NAME = 'albert-base-v2'
@@ -72,8 +72,8 @@ def run_and_eval(model_name=_MODEL_NAME, task_names=_TASK_NAMES):
         val_task_name_list=task_names,
         train_batch_size=32,
         eval_batch_size=16,
-        epochs=3,
-        num_gpus=4,
+        epochs=5,
+        num_gpus=2,
     ).create_config()
 
     run_config_dir = f"{root_dir}/tmp/run_configs/"
