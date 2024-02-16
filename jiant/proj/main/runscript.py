@@ -15,7 +15,7 @@ import jiant.utils.python.io as py_io
 import jiant.utils.zconf as zconf
 
 
-def reset_word_embeddings(wembed_layer, clusters=None, freeze_layer=False, token_file='/home/mehrdadk/repos/jiant/all_clusters_with_ids.json'):
+def reset_word_embeddings(wembed_layer, clusters=None, freeze_layer=False, token_file='jiant/all_clusters_with_ids.json'):
     token_dict = {}
     with open(token_file, 'r') as f:
         cluster_dict = json.load(f)
